@@ -39,7 +39,8 @@ int dQueue(ppQueue pf){
                     printf("Elemento limpado: %.2f\n", remover->dado.floatValue);
                     break;
                 case 2:
-                    printf("Elemento limpado: %s\n", remover->dado.stringValue); 
+                    printf("Elemento limpado: %s\n", remover->dado.stringValue);
+                    free(remover->dado.stringValue); 
                     break;
                 default: 
                     printf("Sem elemento na pilha\n"); 
@@ -74,13 +75,12 @@ int queue(ppQueue pf, char *element){
     long ehnumero;
     float ehfloat;
     No *novo=NULL;
-    No *aux=NULL;
 
     if ((*pf)->capacidade >= (*pf)->tamanho){
         printf("Fila cheia!\n");
         return FAIL;
     }        
-    novo = malloc(sizeof(novo));
+    novo = malloc(sizeof(No));
     if(novo){      
         ehnumero = strtol(element, &testeInt, 10);
         if (*testeInt == '\0' || *testeInt == '\n') {
@@ -129,72 +129,83 @@ int queue(ppQueue pf, char *element){
             }
         }
 
-        if ((*pf)->head == NULL){
+    if ((*pf)->head == NULL) {
             (*pf)->head = novo;
             (*pf)->tail = novo;
             novo->proximo = novo;
         }
-        else{
-            aux = (*pf)->head;
-            aux->proximo = novo;
-            (*pf)->head = novo;            
+        else {
+            // insere depois do head, aponta novo->proximo para tail
+            novo->proximo        = (*pf)->tail;          // define próximo do novo
+            (*pf)->head->proximo = novo;                 // antigo head aponta pro novo
+            (*pf)->head         = novo;                  // atualiza head
         }
-        novo->proximo = (*pf)->tail;            
-        (*pf)->capacidade+= 1;    
-    }
-    else{
+        (*pf)->capacidade += 1;
+        return SUCCESS;
+    }else{
         return FAIL;
     }
-    return SUCCESS;
 }
 
 
 
-
+// Desenfilera um elemento
 // Desenfilera um elemento
 int unqueue(ppQueue pf){
     No *remover=NULL;
-    No *aux=NULL;
     
-    if ((*pf)->capacidade == 0){
+    // Verifica se a fila está vazia ou se o ponteiro da fila é nulo
+    if ((*pf)->capacidade == 0 || pf == NULL){
         return FAIL;
     }
     
     if((*pf)->tail){
         remover = (*pf)->tail;
+        
         switch ((*pf)->type) {
             case 0:
                 printf("Elemento retirado: %d\n", remover->dado.intValue);
                 break;
             case 1:
-                printf("Elemento retirado f: %.2f\n", remover->dado.floatValue);
+                printf("Elemento retirado: %.2f\n", remover->dado.floatValue);
                 break;
             case 2:
-                printf("Elemento retirado: %s\n", remover->dado.stringValue); 
+                printf("Elemento retirado: %s\n", remover->dado.stringValue);
+                free(remover->dado.stringValue); // Liberar string alocada
                 break;
             default: 
-                printf("Sem elemento na pilha\n"); 
-        }   
-
-        (*pf)->tail = remover->proximo;
-        (*pf)->capacidade-= 1;     
-        if ((*pf)->capacidade == 1){   
-            aux = (*pf)->head;
-            aux->proximo = (*pf)->tail;
+                printf("Elemento inválido\n"); 
         }
-        free(remover);
-        if ((*pf)->capacidade == 0){
+
+        // Caso a fila tenha apenas um elemento
+        if ((*pf)->capacidade == 1) {
+            (*pf)->head = NULL; // Resetando a cabeça
+            (*pf)->tail = NULL; // Resetando o tail
+            (*pf)->type = 99;   // Resetando o tipo
+            (*pf)->capacidade = 0; // Resetando a capacidade
+            free(remover); // Liberando o nó
+            return SUCCESS;  // Evita continuar após liberar o último nó
+        }
+
+        // Atualizar tail para o próximo elemento
+        (*pf)->tail = remover->proximo;
+        (*pf)->capacidade -= 1;
+
+        free(remover); // Liberando a memória do nó removido
+
+        // Se a fila estiver vazia após a remoção, resetando as variáveis
+        if ((*pf)->capacidade == 0) {
             (*pf)->type = 99;
-            (*pf)->capacidade = 0;
             (*pf)->head = NULL;
             (*pf)->tail = NULL;
         }
     }
-    else{
+    else {
         return FAIL;
     }
     return SUCCESS;
 }
+
 
 
 
@@ -204,7 +215,7 @@ int unqueue(ppQueue pf){
 int cleanQueue(ppQueue pf){
     No *remover=NULL;
     
-    if ((*pf)->capacidade = 0){
+    if ((*pf)->capacidade == 0){
         return SUCCESS;
     }
 

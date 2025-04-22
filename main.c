@@ -12,11 +12,11 @@ int main() {
     char *ptr;
     ptr = buffer;  
   
-
+    printf("Digite o numero de elementos/capacidade da fila!\n");
     if (!fscanf(stdin, "%i", &rlines)) {
         return 1;
     }
-
+    getchar();
     ret = cQueue(&Q,rlines);
     fflush(stdin);
 
