@@ -1,9 +1,11 @@
+// queue_pri.h
 #ifndef QUEUE_PRI_H
 #define QUEUE_PRI_H
 
+#include "queue_pub.h"
 
+// Nó da fila: armazena int, float ou string
 typedef struct no {
-    //Dado *info;
     union {
         int intValue;
         float floatValue;
@@ -12,14 +14,16 @@ typedef struct no {
     struct no *proximo;
 } No;
 
-typedef struct Queue 
-{
+// Descritor da fila genérica homogênea
+// type: 0=int, 1=float, 2=string, 99=undefined
+// sizedata preservado para compatibilidade
+typedef struct Queue {
     No *head;
     No *tail;
     int tamanho;
     int capacidade;
-    int type; // 0 para int, 1 para float, 2 para string, 99 para não definido
+    int type;
+    int sizedata;
 } Queue;
 
-
-#endif
+#endif // QUEUE_PRI_H

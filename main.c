@@ -1,95 +1,70 @@
-/* Arquivo EXEMQLO DE AQlicacao */
-// MODIFIQUEM-o, CORRIJAM-o!
+// main.h
+#ifndef MAIN_H
+#define MAIN_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "queue_pub.h"
+
+#endif // MAIN_H
+
+
+// main.c
 #include "main.h"
 
-int main() {
-    
+int main(void) {
     pQueue Q = NULL;
-    int ret=0;
-    int rlines=0; 
-    char buffer[100]; 
-    int leitura=0;
-    char *ptr;
-    ptr = buffer;  
-  
-    printf("Digite o numero de elementos/capacidade da fila!\n");
-    if (!fscanf(stdin, "%i", &rlines)) {
+    char buffer[256];
+    char *endptr;
+    long cap;
+
+    // 1) Lê e valida a capacidade
+    printf("Informe a capacidade da fila:\n");
+    if (!fgets(buffer, sizeof(buffer), stdin)) return 1;
+    buffer[strcspn(buffer, "\n")] = '\0';
+    cap = strtol(buffer, &endptr, 10);
+    if (*endptr != '\0' || cap <= 0) {
+        fprintf(stderr, "Capacidade inválida.\n");
         return 1;
     }
-    getchar();
-    ret = cQueue(&Q,rlines);
-    fflush(stdin);
 
+    // 2) Cria fila (tipo genérico homogêneo via string)
+    if (cQueue(&Q, (int)cap, sizeof(char *)) != SUCCESS) {
+        fprintf(stderr, "Erro ao criar fila.\n");
+        return 1;
+    }
 
-    printf("Digite %d dados genericos (inteiros, float ou string), um por linha:\n", rlines);
-    while (leitura < rlines) {
+    // 3) Enfileira elementos
+    printf("Digite %ld elementos, um por linha:\n", cap);
+    for (int i = 0; i < cap; ) {
         if (!fgets(buffer, sizeof(buffer), stdin)) {
-            printf("Erro ao ler a entrada.\n");
+            fprintf(stderr, "Erro ao ler a entrada.\n");
+            dQueue(&Q);
             return 1;
         }
-        if (strlen(buffer) == 0){
-            return 1;
+        buffer[strcspn(buffer, "\n")] = '\0';
+        if (queue(Q, buffer) == SUCCESS) {
+            i++;
         }
-        ret = queue(&Q,ptr);
-        //printf("Push na fila %d\n", ret);
-        if (ret == 0){
-            leitura++;
-        }        
+        // se FAIL, mensagem já foi impressa internamente
+    }
 
-    }    
-    
-    ret = head(Q);    
-    ret = tail(Q);    
-    ret = sizeQueue(Q);      
-    
-    // TESTES DIVERSOS
-    printf("Force mais um elemento:\n", rlines);
-    if (!fgets(buffer, sizeof(buffer), stdin)) {
-        printf("Erro ao ler a entrada.\n");
+    // 4) Desenfileira e imprime
+    printf("\nDesenfileirando elementos:\n");
+    for (int i = 0; i < cap; i++) {
+        char *out;
+        if (unqueue(Q, &out) == SUCCESS) {
+            printf("%s\n", out);
+            free(out);
+        }
+    }
+
+    // 5) Destrói fila
+    if (dQueue(&Q) != SUCCESS) {
+        fprintf(stderr, "Erro ao destruir fila.\n");
         return 1;
     }
-    if (strlen(buffer) == 0){
-        return 1;
-    }
-    ret = queue(&Q,ptr);
-
-    printf("Retirado um elemento\n", rlines);
-    ret = unqueue(&Q);
-
-    printf("Como ficou:\n", rlines);
-    ret = head(Q);    
-    ret = tail(Q);    
-    ret = sizeQueue(Q); 
-
-    printf("Force mais um elemento:\n", rlines);
-    if (!fgets(buffer, sizeof(buffer), stdin)) {
-        printf("Erro ao ler a entrada.\n");
-        return 1;
-    }
-    if (strlen(buffer) == 0){
-        return 1;
-    }
-    ret = queue(&Q,ptr);
-
-
-    printf("Como ficou:\n");
-    ret = head(Q);    
-    ret = tail(Q);    
-    ret = sizeQueue(Q); 
-
-    printf("Fila toda:\n");
-    imprime(Q);
-    ///FIM TESTES
-
-    for (int i=0; i<rlines;i++) {
-        ret = unqueue(&Q);
-        ret = head(Q);    
-        ret = tail(Q);    
-        ret = sizeQueue(Q); 
-    }
-    printf("Retirada da fila completado\n");
-    ret = dQueue(&Q);
-    printf("Flush na fila %d\n", ret);
-  
+    printf("Fila destruída com sucesso.\n");
     return 0;
 }
